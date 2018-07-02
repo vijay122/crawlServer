@@ -11,6 +11,7 @@ var app = express();
 var named = '';
 
 var crawlCreator = require("./crawlEngine/crawlService");
+var sheets = require("./repository/index");
 
 app.use(compression({filter: shouldCompress}))
 //app.use(express.static(path.join(__dirname, 'public')));
@@ -78,7 +79,10 @@ var done = false;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'images')));
 app.get('/crawlContents',crawlCreator.CrawlContents);
-app.post('/crawlContentsApi',crawlCreator.CrawlContentsApi);
+app.get('/crawlContentsSheets',sheets.CrawlContentsFromSheets);
+app.post('/crawlContentsApi',function(request,response){
+    crawlCreator.CrawlContentsApi(request.body.payload.searchItem, request.body.payload.searchParams);
+});
 
 app.get('/ping', function (request, response) {
     response.send("hi ping success");

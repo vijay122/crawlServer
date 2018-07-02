@@ -5,61 +5,74 @@ var http = require('http');
 
 function SaveTemporaryData(payload)
 {
-    httpUtils.fetchData("http://localhost:8000/Save","POST",payload)
+    return new Promise((resolve, reject) => {
+        httpUtils.fetchData("http://localhost:8000/Save", "POST", payload).then(response => {
+            resolve(response);
+        });
+    });
 }
 
-exports.CrawlContentsApi = function(req,res) {
-getTitle(req.body.payload.searchItem).then(titlesArray=>
-{
-    getUrl(titlesArray,req.body.payload.searchItem, req.body.payload.searchParams).then(url=>{
-        crawlUrlAndSave(url);
-    })
-})
+exports.CrawlContentsApi = function(searchItem,searchParam) {
+    return new Promise((resolve, reject) => {
+        getTitle(searchItem).then(titlesArray => {
+            getUrl(titlesArray,searchItem, searchParam).then(url => {
+                crawlUrlAndSave(url).then(result=>{
+                    resolve(result);
+                });
+            })
+        })
+    });
 }
 
 const crawlUrlAndSave=(url)=>{
-    var c =new Crawler({
-        maxConnections : 10,
-        // This will be called for each crawled page
-        callback : function (error, res, done) {
-            if(error){
-                console.log(error);
-            }else{
-                var $ = res.$;
-                var coordinates = $(".geo").first().text().trim().split(";");
-                // $ is Cheerio by default
-                //a lean implementation of core jQuery designed specifically for the server
-                console.log($("#firstHeading").text());
-                console.log("coordinates:"+$(".geo").first().text().trim());
-                console.log("country:"+$(".flagicon").next().text());
-                // console.log("Country:"+$(".infobox.geography.vcard .mergedtoprow").children("td:not(div)").eq(2).text().trim());
-                console.log("state:"+$(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim());
-                console.log("city:"+$(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim());
-                console.log("pincode:222222");
-                console.log("description:"+$(".infobox.geography.vcard").parent().children('p').slice(0,2).text());
-                console.log("landmark:"+$(".infobox.geography.vcard").parent().children('p').slice(2,6).text());
+   // return new Promise((resolve, reject) => {
+        var c = new Crawler({
+            maxConnections: 10,
+            // This will be called for each crawled page
+            callback: function (error, res, done) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    var $ = res.$;
+                    var coordinates = $(".geo").first().text().trim().split(";");
+                    // $ is Cheerio by default
+                    //a lean implementation of core jQuery designed specifically for the server
+                    console.log($("#firstHeading").text());
+                    console.log("coordinates:" + $(".geo").first().text().trim());
+                    console.log("country:" + $(".flagicon").next().text());
+                    // console.log("Country:"+$(".infobox.geography.vcard .mergedtoprow").children("td:not(div)").eq(2).text().trim());
+                    console.log("state:" + $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim());
+                    console.log("city:" + $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim());
+                    console.log("pincode:222222");
+                    console.log("description:" + $(".infobox.geography.vcard").parent().children('p').slice(0, 2).text());
+                    console.log("landmark:" + $(".infobox.geography.vcard").parent().children('p').slice(2, 6).text());
 
 
-                var payload ={};
-                // payload._id= Math.floor((Math.random() * 100000) + 1);
-                payload.name = $("#firstHeading").text();
-                payload.country = $(".flagicon").next().text();
-                payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim();
-                payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim();
-                payload.pincode = 222222;
-                payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text();
-                payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
-                payload.latitude = coordinates[0];
-                payload.longitude = coordinates[1];
-                payload.type="standalone";
-                payload.isValidated=false;
-                //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
+                    var payload = {};
+                    // payload._id= Math.floor((Math.random() * 100000) + 1);
+                    payload.name = $("#firstHeading").text();
+                    payload.country = $(".flagicon").next().text();
+                    payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim();
+                    payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim();
+                    payload.pincode = 222222;
+                    payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0, 2).text();
+                    payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2, 6).text();
+                    payload.latitude = coordinates[0];
+                    payload.longitude = coordinates[1];
+                    payload.type = "standalone";
+                    payload.isValidated = false;
+                    //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
 
-                SaveTemporaryData(JSON.stringify({payload:payload}));
+                    SaveTemporaryData(JSON.stringify({payload: payload})).then(data=> {
+                        if(data) {
+                            done();
+                        }
+                        });
+                   // resolve({saved:true});
+                }
             }
-            done();
-        }
-    });
+        });
+   // });
      c.queue(url);
 }
 
@@ -91,6 +104,8 @@ const getUrl=(result,searchItem,searchParams)=>{
         }
     });
 }
+
+
 
 // Queue just one URL, with default callback
 exports.CrawlContents = function(req,res) {
