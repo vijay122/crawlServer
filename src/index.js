@@ -78,6 +78,7 @@ var done = false;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'images')));
 app.get('/crawlContents',crawlCreator.CrawlContents);
+app.post('/crawlContentsApi',crawlCreator.CrawlContentsApi);
 
 app.get('/ping', function (request, response) {
     response.send("hi ping success");
