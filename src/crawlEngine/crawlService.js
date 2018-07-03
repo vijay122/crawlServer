@@ -6,7 +6,7 @@ var http = require('http');
 function SaveTemporaryData(payload)
 {
     return new Promise((resolve, reject) => {
-        httpUtils.fetchData("http://localhost:8000/Save", "POST", payload).then(response => {
+        httpUtils.fetchData("http://139.59.85.107:8000/Save", "POST", payload).then(response => {
             resolve(response);
         });
     });
@@ -14,17 +14,31 @@ function SaveTemporaryData(payload)
 
 exports.CrawlContentsApi = function(searchItem,searchParam) {
     return new Promise((resolve, reject) => {
-        getTitle(searchItem).then(titlesArray => {
-            getUrl(titlesArray,searchItem, searchParam).then(url => {
-                crawlUrlAndSave(url).then(result=>{
-                    resolve(result);
-                });
-            })
-        })
+        /*
+          getTitle(searchItem).then(titlesArray => {
+              getUrl(titlesArray,searchItem, searchParam).then(url => {
+                  crawlUrlAndSave(url).then(result=>{
+                      resolve(result);
+                  });
+              })
+          })
+      });
+      */
+
+        addAsync(searchItem, searchParam);
+
+        async function addAsync(searchItem, searchParam) {
+            const titles = await getTitle(searchItem, searchParam);
+            const url = await getUrl(titles, searchItem, searchParam);
+            if (url) {
+                // const c = await crawlUrlAndSave1(urls);
+                resolve(url);
+            }
+        }
     });
 }
 
-const crawlUrlAndSave=(url)=>{
+exports.crawlUrlAndSave=(url)=>{
    // return new Promise((resolve, reject) => {
         var c = new Crawler({
             maxConnections: 10,
@@ -94,11 +108,10 @@ const getUrl=(result,searchItem,searchParams)=>{
         if (descriptionsArray && descriptionsArray.length >0 ) {
             for(var i=0;i<descriptionsArray.length; i++)
             {
-                if(descriptionsArray[i].indexOf(searchParams)>0)
+                if(descriptionsArray[i].toLowerCase().indexOf(searchParams.toLowerCase())>0)
                 {
                     pickUrl = result[3][i];
                     resolve(pickUrl);
-                    break;
                 }
             }
         }

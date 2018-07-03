@@ -20,6 +20,7 @@ const readline = require('readline');
 const {google} = require('googleapis');
 
 const {CrawlContentsApi} = require("../crawlEngine/crawlService");
+const crawler = require("../crawlEngine/crawlService");
 
 // If modifying these scopes, delete credentials.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
@@ -89,23 +90,40 @@ function listMajors(auth) {
     sheets.spreadsheets.values.get({
         spreadsheetId: '1pf0C3ru20gc3mapwkc-fZafvExYkXWD0M7I9DTYBOZQ',
         range: 'CrawlSheet!A:C',
-    }, (err, {data}) => {
+    }, async (err, {data}) => {
         if (err) return console.log('The API returned an error: ' + err);
         const rows = data.values;
         if (rows.length) {
             console.log('Name, District, Shown:');
             // Print columns A and E, which correspond to indices 0 and 4.
-            rows.map((row) => {
-                if(row[2]=="FALSE")
-                {
-                    CrawlContentsApi(row[0],row[1]).then(result=>{
-                        var st = "sdf";
-                    })
-                }
-                console.log(`${row[0]}, ${row[1]},${row[2]}`);
-            });
+         let urls = await getAllUrls(rows);
+          //
+            if(urls)
+            {
+                crawler.crawlUrlAndSave(urls);
+            }
+            let st = 1;
         } else {
             console.log('No data found.');
+        }
+    });
+}
+
+async function getAllUrls(rows){
+    return new Promise((resolve, reject) => {
+        let urls = [];
+        for(var i=0; i<rows.length;i++)
+        {
+            let row = rows[i];
+            if (row[2] != "TRUE") {
+                CrawlContentsApi(row[0], row[1]).then(result => {
+                    urls.push(result);
+                    if(urls.length==10)
+                    {
+                        resolve(urls);
+                    }
+                });
+            }
         }
     });
 }
