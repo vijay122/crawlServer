@@ -25,7 +25,7 @@ exports.CrawlContentsApi =  function(searchItem,searchParam) {
       });
       */
 
-        let searchItem = searchItem.replace(/\s/g, "_");
+        searchItem = searchItem.replace(/\s/g, "_");
 
        let st = await addAsync(searchItem, searchParam);
             resolve(st);
