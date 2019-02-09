@@ -65,19 +65,21 @@ crawlUrlAndSave=(url)=> {
                     console.log("landmark:" + $(".infobox.geography.vcard").parent().children('p').slice(2, 6).text());
 
 
+                    let descriptionSelector =$("#firstHeading").text().split(" ")[0];
+                    let desc = "p:contains(" + descriptionSelector +")";
                     var payload = {};
                     // payload._id= Math.floor((Math.random() * 100000) + 1);
                     payload.name = $("#firstHeading").text();
-                    payload.country = $(".flagicon").next().text();
-                    payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim();
-                    payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim();
+                    payload.country = $(".flagicon").next().text() || $("th:contains('Location')").next().children().last().text();
+                    payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim() || $("th:contains('Location')").next().children().last().prev().text();
+                    payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim() || $("th:contains('Location')").next().children().last().prev().prev().text();
                     payload.pincode = 222222;
-                    payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0, 2).text();
-                    payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2, 6).text();
+                    payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text() || $(desc).text();
+                    payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
                     payload.latitude = coordinates[0];
                     payload.longitude = coordinates[1];
-                    payload.type = "standalone";
-                    payload.isValidated = false;
+                    //payload.type="standalone";
+                    payload.isValidated=false;
                     //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
                     /*
                                         SaveTemporaryData(JSON.stringify({payload: payload})).then(data=> {
@@ -122,6 +124,7 @@ const getUrl=(result,searchItem,searchParams)=>{
                     resolve(pickUrl);
                 }
             }
+            resolve(result[3][0])
         }
     });
 }
@@ -152,19 +155,21 @@ exports.CrawlContents = function(req,res) {
                 console.log("landmark:"+$(".infobox.geography.vcard").parent().children('p').slice(2,6).text());
 
 
-                var payload ={};
-               // payload._id= Math.floor((Math.random() * 100000) + 1);
+                let descriptionSelector =$("#firstHeading").text().split(" ")[0];
+
+                var payload = {};
+                // payload._id= Math.floor((Math.random() * 100000) + 1);
                 payload.name = $("#firstHeading").text();
-                payload.country = $(".flagicon").next().text();
-                payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim();
-                payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim();
+                payload.country = $(".flagicon").next().text() || $("th:contains('Location')").next().children().last().text();
+                payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim() || $("th:contains('Location')").next().children().last().prev().text();
+                payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim() || $("th:contains('Location')").next().children().last().prev().prev().text();
                 payload.pincode = 222222;
-                payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text();
+                payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text() || $("p:contains(descriptionSelector)").text();
                 payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
                 payload.latitude = coordinates[0];
                 payload.longitude = coordinates[1];
                 //payload.type="standalone";
-                    payload.isValidated=false;
+                payload.isValidated=false;
                 //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
 
                 SaveTemporaryData(JSON.stringify({payload:payload}));
