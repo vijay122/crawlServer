@@ -12,8 +12,8 @@ function SaveTemporaryData(payload)
     });
 }
 
-exports.CrawlContentsApi = function(searchItem,searchParam) {
-    return new Promise((resolve, reject) => {
+exports.CrawlContentsApi =  function(searchItem,searchParam) {
+    return new Promise(async(resolve, reject) => {
         /*
           getTitle(searchItem).then(titlesArray => {
               getUrl(titlesArray,searchItem, searchParam).then(url => {
@@ -25,21 +25,24 @@ exports.CrawlContentsApi = function(searchItem,searchParam) {
       });
       */
 
-        addAsync(searchItem, searchParam);
-
+       let st = await addAsync(searchItem, searchParam);
+            resolve(st);
         async function addAsync(searchItem, searchParam) {
+            return new Promise(async(resolve, reject) => {
             const titles = await getTitle(searchItem, searchParam);
             const url = await getUrl(titles, searchItem, searchParam);
             if (url) {
-                // const c = await crawlUrlAndSave1(urls);
-                resolve(url);
+                 const c = await crawlUrlAndSave(url);
+                 console.log(c);
+                resolve(c);
             }
-        }
-    });
+        });
+    }
+});
 }
 
-exports.crawlUrlAndSave=(url)=>{
-   // return new Promise((resolve, reject) => {
+crawlUrlAndSave=(url)=> {
+    return new Promise((resolve, reject) => {
         var c = new Crawler({
             maxConnections: 10,
             // This will be called for each crawled page
@@ -76,19 +79,24 @@ exports.crawlUrlAndSave=(url)=>{
                     payload.type = "standalone";
                     payload.isValidated = false;
                     //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
-
-                    SaveTemporaryData(JSON.stringify({payload: payload})).then(data=> {
-                        if(data) {
-                            done();
-                        }
-                        });
-                   // resolve({saved:true});
+                    /*
+                                        SaveTemporaryData(JSON.stringify({payload: payload})).then(data=> {
+                                            if(data) {
+                                                done();
+                                            }
+                                            });
+                                            */
+                    resolve(payload);
                 }
             }
+            // });
         });
-   // });
-     c.queue(url);
+       c.queue(url);
+        // c.queue(url);
+    });
 }
+
+exports.crawlUrlAndSave = crawlUrlAndSave;
 
 const getTitle=(findItemName)=>
 {
@@ -129,7 +137,7 @@ exports.CrawlContents = function(req,res) {
             if(error){
                 console.log(error);
             }else{
-                var $ = res.$;
+                var $ = f.$;
                 var coordinates = $(".geo").first().text().trim().split(";");
                 // $ is Cheerio by default
                 //a lean implementation of core jQuery designed specifically for the server
@@ -155,7 +163,7 @@ exports.CrawlContents = function(req,res) {
                 payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
                 payload.latitude = coordinates[0];
                 payload.longitude = coordinates[1];
-                payload.type="standalone";
+                //payload.type="standalone";
                     payload.isValidated=false;
                 //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
 

@@ -80,8 +80,9 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'images')));
 app.get('/crawlContents',crawlCreator.CrawlContents);
 app.get('/crawlContentsSheets',sheets.CrawlContentsFromSheets);
-app.post('/crawlContentsApi',function(request,response){
-    crawlCreator.CrawlContentsApi(request.body.payload.searchItem, request.body.payload.searchParams);
+app.post('/crawlContentsApi', async(request,response)=>{
+   let result = await crawlCreator.CrawlContentsApi(request.body.payload.searchItem, request.body.payload.searchParams);
+    response.send(result);
 });
 
 app.get('/ping', function (request, response) {
