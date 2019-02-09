@@ -25,6 +25,8 @@ exports.CrawlContentsApi =  function(searchItem,searchParam) {
       });
       */
 
+        let searchItem = searchItem.replace(/\s/g, "_");
+
        let st = await addAsync(searchItem, searchParam);
             resolve(st);
         async function addAsync(searchItem, searchParam) {
@@ -74,7 +76,7 @@ crawlUrlAndSave=(url)=> {
                     payload.state = $(".infobox.geography.vcard .mergedrow").children('td').eq(0).text().trim() || $("th:contains('Location')").next().children().last().prev().text();
                     payload.city = $(".infobox.geography.vcard .mergedrow").children('td').eq(1).text().trim() || $("th:contains('Location')").next().children().last().prev().prev().text();
                     payload.pincode = 222222;
-                    payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text() || $(desc).text();
+                    payload.description = $(".infobox.geography.vcard").parent().children('p').slice(0,2).text() || $(desc).text().trim();
                     payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
                     payload.latitude = coordinates[0];
                     payload.longitude = coordinates[1];
