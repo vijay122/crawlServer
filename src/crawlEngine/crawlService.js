@@ -80,6 +80,7 @@ crawlUrlAndSave=(url)=> {
                     payload.landmark = $(".infobox.geography.vcard").parent().children('p').slice(2,6).text();
                     payload.latitude = coordinates[0];
                     payload.longitude = coordinates[1];
+                    payload.creditUrl =url;
                     //payload.type="standalone";
                     payload.isValidated=false;
                     //"loc" : { "coordinates" : [ 77.23306, 9.58194 ], "type" : "Point" }
